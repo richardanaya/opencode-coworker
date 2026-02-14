@@ -12727,7 +12727,6 @@ var coworkerPlugin = async (ctx) => {
       }
       const result = await client.session.create({
         body: {
-          parentID: toolCtx.sessionID,
           title: `${args.name} (${args.agent_type ?? "code"})`
         }
       });
