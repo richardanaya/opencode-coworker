@@ -12743,7 +12743,7 @@ var coworkerPlugin = async (ctx) => {
       }
       const result = await client.session.create({
         body: {
-          title: `${args.name} (${args.agent_type ?? "code"})`
+          title: `${args.name} (${args.agent_type ?? "general"})`
         }
       });
       const sessionId = result.data?.id;
@@ -12754,19 +12754,19 @@ var coworkerPlugin = async (ctx) => {
         path: { id: sessionId },
         body: {
           parts: [{ type: "text", text: args.prompt }],
-          agent: args.agent_type ?? "code"
+          agent: args.agent_type ?? "general"
         }
       });
       coworkers[name] = {
         sessionId,
-        agentType: args.agent_type ?? "code",
+        agentType: args.agent_type ?? "general",
         createdAt: new Date().toISOString(),
         parentId: toolCtx.sessionID
       };
       await saveCoworkers(client, coworkers);
       activeSessions.set(sessionId, name);
       sessionParents.set(sessionId, toolCtx.sessionID);
-      return `Created coworker "${name}" (${args.agent_type ?? "code"}) with session ${sessionId}`;
+      return `Created coworker "${name}" (${args.agent_type ?? "general"}) with session ${sessionId}`;
     }
   });
   const listCoworkersTool = tool3({
