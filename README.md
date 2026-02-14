@@ -14,6 +14,9 @@ This OpenCode plugin enables you to create and manage persistent AI coworker ses
 
 **WARNING: warning, there is no protection from unbounded cycles of communication between coworkers! use this plugin responsibly**
 
+<img width="1678" height="865" alt="image" src="https://github.com/user-attachments/assets/8449680c-f909-4bf1-bfd3-46a8461d4d58" />
+
+
 ## Installation
 
 ```bash
