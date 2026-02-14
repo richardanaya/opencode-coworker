@@ -6,6 +6,11 @@ Create named sessions as coworkers you can send messages to by name.
 
 This OpenCode plugin enables you to create and manage persistent AI coworker sessions. Each coworker is a named session with a specific agent type that can be messaged and assigned tasks independently.
 
+**IMPORTANT: this plugin is meant to be ultra simplistic, it effectively just gives you named sessions and does not have features like session cross-talk. Ideally coworkers talking autonomously to each other would be handled by a seperate plugin that you choose is appropriate.  This tool just allows you to create the async sessions and bump them to get them started sometimes explicitly.**
+
+
+**WARNING: warning, there is no protection from unbounded cycles of communication between coworkers! use this plugin responsibly**
+
 ## Installation
 
 ```bash
