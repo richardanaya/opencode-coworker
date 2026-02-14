@@ -47,7 +47,13 @@ async function loadCoworkers(client: SessionClient): Promise<CoworkerStorage> {
   const file = await getStorageFile(client);
   try {
     if (fs.existsSync(file)) {
-      return JSON.parse(fs.readFileSync(file, "utf-8"));
+      const data = JSON.parse(fs.readFileSync(file, "utf-8")) as CoworkerStorage;
+      // Normalize all names to lowercase for case-insensitive lookup
+      const normalized: CoworkerStorage = {};
+      for (const [name, coworker] of Object.entries(data)) {
+        normalized[name.toLowerCase()] = coworker;
+      }
+      return normalized;
     }
   } catch {}
   return {};
@@ -73,8 +79,6 @@ const coworkerPlugin: Plugin = async (ctx) => {
   const client = ctx.client;
   const directory = ctx.directory;
 
-  console.log("[Coworker] Plugin initialized");
-
   // Get the tool helper and zod schema from the plugin
   const { tool } = await import("@opencode-ai/plugin");
   const z = tool.schema;
@@ -89,9 +93,10 @@ const coworkerPlugin: Plugin = async (ctx) => {
     },
     async execute(args, toolCtx) {
       const coworkers = await loadCoworkers(client);
+      const name = args.name.toLowerCase();
 
-      if (coworkers[args.name]) {
-        return `Error: Coworker "${args.name}" already exists with session ${coworkers[args.name].sessionId}`;
+      if (coworkers[name]) {
+        return `Error: Coworker "${name}" already exists with session ${coworkers[name].sessionId}`;
       }
 
       const result = await client.session.create({
@@ -114,7 +119,7 @@ const coworkerPlugin: Plugin = async (ctx) => {
         },
       });
 
-      coworkers[args.name] = {
+      coworkers[name] = {
         sessionId,
         agentType: args.agent_type ?? "code",
         createdAt: new Date().toISOString(),
@@ -122,10 +127,10 @@ const coworkerPlugin: Plugin = async (ctx) => {
       };
       await saveCoworkers(client, coworkers);
 
-      activeSessions.set(sessionId, args.name);
+      activeSessions.set(sessionId, name);
       sessionParents.set(sessionId, toolCtx.sessionID);
 
-      return `Created coworker "${args.name}" (${args.agent_type ?? "code"}) with session ${sessionId}`;
+      return `Created coworker "${name}" (${args.agent_type ?? "code"}) with session ${sessionId}`;
     },
   });
 
@@ -157,10 +162,11 @@ const coworkerPlugin: Plugin = async (ctx) => {
     },
     async execute(args) {
       const coworkers = await loadCoworkers(client);
-      const coworker = coworkers[args.name];
+      const name = args.name.toLowerCase();
+      const coworker = coworkers[name];
 
       if (!coworker) {
-        return `Error: Coworker "${args.name}" not found. Use list_coworkers to see available coworkers.`;
+        return `Error: Coworker "${name}" not found. Use list_coworkers to see available coworkers.`;
       }
 
       await client.session.prompt({
@@ -170,7 +176,7 @@ const coworkerPlugin: Plugin = async (ctx) => {
         },
       });
 
-      return `Queued message to "${args.name}" (${coworker.agentType})`;
+      return `Queued message to "${name}" (${coworker.agentType})`;
     },
   });
 
@@ -214,7 +220,6 @@ const coworkerPlugin: Plugin = async (ctx) => {
       input.experimental ??= {};
       input.experimental.primary_tools ??= [];
       input.experimental.primary_tools.push("create_coworker", "list_coworkers", "tell_coworker");
-      console.log("[Coworker] Added tools to primary_tools");
     },
   };
 };

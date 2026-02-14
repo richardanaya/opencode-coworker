@@ -12691,7 +12691,12 @@ async function loadCoworkers(client) {
   const file2 = await getStorageFile(client);
   try {
     if (fs.existsSync(file2)) {
-      return JSON.parse(fs.readFileSync(file2, "utf-8"));
+      const data = JSON.parse(fs.readFileSync(file2, "utf-8"));
+      const normalized = {};
+      for (const [name, coworker] of Object.entries(data)) {
+        normalized[name.toLowerCase()] = coworker;
+      }
+      return normalized;
     }
   } catch {}
   return {};
@@ -12705,7 +12710,6 @@ var sessionParents = new Map;
 var coworkerPlugin = async (ctx) => {
   const client = ctx.client;
   const directory = ctx.directory;
-  console.log("[Coworker] Plugin initialized");
   const { tool: tool3 } = await Promise.resolve().then(() => (init_dist(), exports_dist));
   const z = tool3.schema;
   const createCoworkerTool = tool3({
@@ -12717,8 +12721,9 @@ var coworkerPlugin = async (ctx) => {
     },
     async execute(args, toolCtx) {
       const coworkers = await loadCoworkers(client);
-      if (coworkers[args.name]) {
-        return `Error: Coworker "${args.name}" already exists with session ${coworkers[args.name].sessionId}`;
+      const name = args.name.toLowerCase();
+      if (coworkers[name]) {
+        return `Error: Coworker "${name}" already exists with session ${coworkers[name].sessionId}`;
       }
       const result = await client.session.create({
         body: {
@@ -12737,16 +12742,16 @@ var coworkerPlugin = async (ctx) => {
           agent: args.agent_type ?? "code"
         }
       });
-      coworkers[args.name] = {
+      coworkers[name] = {
         sessionId,
         agentType: args.agent_type ?? "code",
         createdAt: new Date().toISOString(),
         parentId: toolCtx.sessionID
       };
       await saveCoworkers(client, coworkers);
-      activeSessions.set(sessionId, args.name);
+      activeSessions.set(sessionId, name);
       sessionParents.set(sessionId, toolCtx.sessionID);
-      return `Created coworker "${args.name}" (${args.agent_type ?? "code"}) with session ${sessionId}`;
+      return `Created coworker "${name}" (${args.agent_type ?? "code"}) with session ${sessionId}`;
     }
   });
   const listCoworkersTool = tool3({
@@ -12773,9 +12778,10 @@ var coworkerPlugin = async (ctx) => {
     },
     async execute(args) {
       const coworkers = await loadCoworkers(client);
-      const coworker = coworkers[args.name];
+      const name = args.name.toLowerCase();
+      const coworker = coworkers[name];
       if (!coworker) {
-        return `Error: Coworker "${args.name}" not found. Use list_coworkers to see available coworkers.`;
+        return `Error: Coworker "${name}" not found. Use list_coworkers to see available coworkers.`;
       }
       await client.session.prompt({
         path: { id: coworker.sessionId },
@@ -12783,7 +12789,7 @@ var coworkerPlugin = async (ctx) => {
           parts: [{ type: "text", text: args.message }]
         }
       });
-      return `Queued message to "${args.name}" (${coworker.agentType})`;
+      return `Queued message to "${name}" (${coworker.agentType})`;
     }
   });
   return {
@@ -12816,7 +12822,6 @@ ${list}` };
       input.experimental ??= {};
       input.experimental.primary_tools ??= [];
       input.experimental.primary_tools.push("create_coworker", "list_coworkers", "tell_coworker");
-      console.log("[Coworker] Added tools to primary_tools");
     }
   };
 };
