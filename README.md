@@ -12,7 +12,7 @@ This OpenCode plugin enables you to create and manage persistent AI coworker ses
 **IMPORTANT: this plugin is meant to be ultra simplistic, it effectively just gives you named sessions and does not have features like session cross-talk. Ideally coworkers talking autonomously to each other would be handled by a seperate plugin that you choose is appropriate.  This tool just allows you to create the async sessions and bump them to get them started sometimes explicitly.**
 
 
-**WARNING: warning, there is no protection from unbounded cycles of communication between coworkers! use this plugin responsibly**
+**WARNING: warning, there is no protection from unbounded cycles of communication between coworkers or creation of coworkers! use this plugin responsibly**
 
 <img width="1678" height="865" alt="image" src="https://github.com/user-attachments/assets/8449680c-f909-4bf1-bfd3-46a8461d4d58" />
 
