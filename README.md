@@ -1,4 +1,4 @@
-<img width="300" alt="image" src="https://github.com/user-attachments/assets/f8533501-7ebc-4f39-ba2f-b0749d2a25b2" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/f8533501-7ebc-4f39-ba2f-b0749d2a25b2" />
 
 
 # opencode-coworker
