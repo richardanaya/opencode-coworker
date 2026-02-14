@@ -1,6 +1,6 @@
 import type { Plugin, ToolContext } from "@opencode-ai/plugin";
 import type { createOpencodeClient } from "@opencode-ai/sdk";
-import * as fs from "fs";
+import { Database } from "bun:sqlite";
 import * as path from "path";
 
 // =============================================================================
@@ -33,35 +33,58 @@ interface ServerConfig {
 // Storage
 // =============================================================================
 
-let storageFile: string | null = null;
+let db: Database | null = null;
 
-async function getStorageFile(client: SessionClient): Promise<string> {
-  if (!storageFile) {
+async function getDb(client: SessionClient): Promise<Database> {
+  if (!db) {
     const result = await client.path.get();
-    storageFile = path.join(result.data!.config, "coworkers.json");
+    const dbPath = path.join(result.data!.config, "coworkers.db");
+    db = new Database(dbPath);
+    db.run(`
+      CREATE TABLE IF NOT EXISTS coworkers (
+        name TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
+        agent_type TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        parent_id TEXT
+      )
+    `);
   }
-  return storageFile;
+  return db;
 }
 
 async function loadCoworkers(client: SessionClient): Promise<CoworkerStorage> {
-  const file = await getStorageFile(client);
-  try {
-    if (fs.existsSync(file)) {
-      const data = JSON.parse(fs.readFileSync(file, "utf-8")) as CoworkerStorage;
-      // Normalize all names to lowercase for case-insensitive lookup
-      const normalized: CoworkerStorage = {};
-      for (const [name, coworker] of Object.entries(data)) {
-        normalized[name.toLowerCase()] = coworker;
-      }
-      return normalized;
-    }
-  } catch {}
-  return {};
+  const database = await getDb(client);
+  const rows = database.query("SELECT * FROM coworkers").all() as Array<{
+    name: string;
+    session_id: string;
+    agent_type: string;
+    created_at: string;
+    parent_id: string | null;
+  }>;
+
+  const normalized: CoworkerStorage = {};
+  for (const row of rows) {
+    normalized[row.name.toLowerCase()] = {
+      sessionId: row.session_id,
+      agentType: row.agent_type,
+      createdAt: row.created_at,
+      parentId: row.parent_id || undefined,
+    };
+  }
+  return normalized;
 }
 
 async function saveCoworkers(client: SessionClient, coworkers: CoworkerStorage) {
-  const file = await getStorageFile(client);
-  fs.writeFileSync(file, JSON.stringify(coworkers, null, 2));
+  const database = await getDb(client);
+  const stmt = database.prepare(`
+    INSERT OR REPLACE INTO coworkers (name, session_id, agent_type, created_at, parent_id)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+
+  for (const [name, coworker] of Object.entries(coworkers)) {
+    stmt.run(name.toLowerCase(), coworker.sessionId, coworker.agentType, coworker.createdAt, coworker.parentId || null);
+  }
 }
 
 // =============================================================================

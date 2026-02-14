@@ -68,11 +68,14 @@ List all coworkers and their current status.
 
 ## Storage
 
-Coworker data is persisted in `~/.config/opencode/coworkers.json`.
+Coworker data is persisted in `~/.config/opencode/coworkers.db` using Bun's built-in SQLite support (`bun:sqlite`). This provides better performance and reliability compared to the previous JSON file storage.
 
-## Requirements
+### Requirements
 
+- **Bun runtime** - This plugin requires Bun (uses `bun:sqlite` for database operations)
 - Peer dependency: `@opencode-ai/plugin` ^1.1.25
+
+
 
 ## License
 

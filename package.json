@@ -1,6 +1,6 @@
 {
   "name": "opencode-coworker",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Create named sessions as coworkers you can send messages to their session by name",
   "type": "module",
   "main": "./dist/index.js",
@@ -22,6 +22,7 @@
     "prepublishOnly": "bun run build"
   },
   "devDependencies": {
+    "@types/bun": "^1.2.0",
     "@types/node": "^25.0.10",
     "electron": "^28.0.0",
     "typescript": "^5.9.3"

@@ -12677,33 +12677,49 @@ var init_dist = __esm(() => {
 });
 
 // index.ts
-import * as fs from "fs";
+import { Database } from "bun:sqlite";
 import * as path from "path";
-var storageFile = null;
-async function getStorageFile(client) {
-  if (!storageFile) {
+var db = null;
+async function getDb(client) {
+  if (!db) {
     const result = await client.path.get();
-    storageFile = path.join(result.data.config, "coworkers.json");
+    const dbPath = path.join(result.data.config, "coworkers.db");
+    db = new Database(dbPath);
+    db.run(`
+      CREATE TABLE IF NOT EXISTS coworkers (
+        name TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL,
+        agent_type TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        parent_id TEXT
+      )
+    `);
   }
-  return storageFile;
+  return db;
 }
 async function loadCoworkers(client) {
-  const file2 = await getStorageFile(client);
-  try {
-    if (fs.existsSync(file2)) {
-      const data = JSON.parse(fs.readFileSync(file2, "utf-8"));
-      const normalized = {};
-      for (const [name, coworker] of Object.entries(data)) {
-        normalized[name.toLowerCase()] = coworker;
-      }
-      return normalized;
-    }
-  } catch {}
-  return {};
+  const database = await getDb(client);
+  const rows = database.query("SELECT * FROM coworkers").all();
+  const normalized = {};
+  for (const row of rows) {
+    normalized[row.name.toLowerCase()] = {
+      sessionId: row.session_id,
+      agentType: row.agent_type,
+      createdAt: row.created_at,
+      parentId: row.parent_id || undefined
+    };
+  }
+  return normalized;
 }
 async function saveCoworkers(client, coworkers) {
-  const file2 = await getStorageFile(client);
-  fs.writeFileSync(file2, JSON.stringify(coworkers, null, 2));
+  const database = await getDb(client);
+  const stmt = database.prepare(`
+    INSERT OR REPLACE INTO coworkers (name, session_id, agent_type, created_at, parent_id)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  for (const [name, coworker] of Object.entries(coworkers)) {
+    stmt.run(name.toLowerCase(), coworker.sessionId, coworker.agentType, coworker.createdAt, coworker.parentId || null);
+  }
 }
 var activeSessions = new Map;
 var sessionParents = new Map;
