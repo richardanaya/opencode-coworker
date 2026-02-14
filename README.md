@@ -1,0 +1,66 @@
+# opencode-coworker
+
+Create named sessions as coworkers you can send messages to by name.
+
+## Description
+
+This OpenCode plugin enables you to create and manage persistent AI coworker sessions. Each coworker is a named session with a specific agent type that can be messaged and assigned tasks independently.
+
+## Installation
+
+```bash
+npm install opencode-coworker
+```
+
+## Usage
+
+The plugin provides three tools and one command:
+
+### Tools
+
+- **create_coworker** - Create a new coworker with a name and agent type
+- **list_coworkers** - List all existing coworkers and their status
+- **tell_coworker** - Send a message or task to a specific coworker
+
+### Command
+
+- **/coworkers** - List all coworkers (formatted view)
+
+## API
+
+### create_coworker
+
+Create a new coworker session.
+
+**Parameters:**
+- `name` (string, required) - User-friendly name for this coworker
+- `agent_type` (string, optional) - Agent type to use (e.g., code, researcher). Defaults to 'code'
+- `prompt` (string, required) - Initial prompt/task for the coworker
+
+### tell_coworker
+
+Send a message to an existing coworker.
+
+**Parameters:**
+- `name` (string, required) - Name of the coworker to message
+- `message` (string, required) - Message or task to send to the coworker
+
+### list_coworkers
+
+List all coworkers and their current status.
+
+## Storage
+
+Coworker data is persisted in `~/.config/opencode/coworkers.json`.
+
+## Requirements
+
+- Peer dependency: `@opencode-ai/plugin` ^1.1.25
+
+## License
+
+MIT
+
+## Repository
+
+https://github.com/richardanaya/opencode-avatar
