@@ -9,7 +9,13 @@ This OpenCode plugin enables you to create and manage persistent AI coworker ses
 ## Installation
 
 ```bash
-npm install opencode-coworker
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "opencode-coworker"
+  ]
+  ...
+}
 ```
 
 ## Usage
