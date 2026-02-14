@@ -41,10 +41,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/richardanaya/opencode-avatar.git"
+    "url": "git+https://github.com/richardanaya/opencode-coworker.git"
   },
-  "homepage": "https://github.com/richardanaya/opencode-avatar#readme",
+  "homepage": "https://github.com/richardanaya/opencode-coworker#readme",
   "bugs": {
-    "url": "https://github.com/richardanaya/opencode-avatar/issues"
+    "url": "https://github.com/richardanaya/opencode-coworker/issues"
   }
 }

@@ -63,4 +63,4 @@ MIT
 
 ## Repository
 
-https://github.com/richardanaya/opencode-avatar
+https://github.com/richardanaya/opencode-coworker
