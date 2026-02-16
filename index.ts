@@ -202,12 +202,37 @@ const coworkerPlugin: Plugin = async (ctx) => {
     },
   });
 
+  const removeCoworkerTool = tool({
+    description: "Remove a coworker permanently. IMPORTANT: Please verify with the user that they want to do this before proceeding.",
+    args: {
+      name: z.string().describe("Name of the coworker to remove"),
+    },
+    async execute(args) {
+      const coworkers = await loadCoworkers(client);
+      const name = args.name.toLowerCase();
+      const coworker = coworkers[name];
+
+      if (!coworker) {
+        return `Error: Coworker "${name}" not found. Use list_coworkers to see available coworkers.`;
+      }
+
+      const database = await getDb(client);
+      database.run("DELETE FROM coworkers WHERE name = ?", [name]);
+
+      activeSessions.delete(coworker.sessionId);
+      sessionParents.delete(coworker.sessionId);
+
+      return `Removed coworker "${name}" (${coworker.agentType})`;
+    },
+  });
+
   return {
     // Register tools
     tool: {
       create_coworker: createCoworkerTool,
       list_coworkers: listCoworkersTool,
       tell_coworker: tellCoworkerTool,
+      remove_coworker: removeCoworkerTool,
     },
 
     // Register /coworkers command
@@ -241,7 +266,7 @@ const coworkerPlugin: Plugin = async (ctx) => {
     config: async (input: ServerConfig) => {
       input.experimental ??= {};
       input.experimental.primary_tools ??= [];
-      input.experimental.primary_tools.push("create_coworker", "list_coworkers", "tell_coworker");
+      input.experimental.primary_tools.push("create_coworker", "list_coworkers", "tell_coworker", "remove_coworker");
     },
   };
 };
