@@ -12750,10 +12750,11 @@ var coworkerPlugin = async (ctx) => {
       if (!sessionId) {
         return "Error: Failed to create session";
       }
+      const modifiedPrompt = `IMPORTANT: your name is '${args.name}'. ${args.prompt}`;
       await client.session.prompt({
         path: { id: sessionId },
         body: {
-          parts: [{ type: "text", text: args.prompt }],
+          parts: [{ type: "text", text: modifiedPrompt }],
           agent: args.agent_type ?? "general"
         }
       });
