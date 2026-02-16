@@ -12820,11 +12820,14 @@ var coworkerPlugin = async (ctx) => {
       if (!coworker) {
         return `Error: Coworker "${name}" not found. Use list_coworkers to see available coworkers.`;
       }
+      await client.session.delete({
+        path: { id: coworker.sessionId }
+      });
       const database = await getDb(client);
       database.run("DELETE FROM coworkers WHERE name = ?", [name]);
       activeSessions.delete(coworker.sessionId);
       sessionParents.delete(coworker.sessionId);
-      return `Removed coworker "${name}" (${coworker.agentType})`;
+      return `Removed coworker "${name}" (${coworker.agentType}) and deleted session ${coworker.sessionId}`;
     }
   });
   return {

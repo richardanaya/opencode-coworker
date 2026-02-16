@@ -1,6 +1,6 @@
 {
   "name": "opencode-coworker",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Create named sessions as coworkers you can send messages to their session by name",
   "type": "module",
   "main": "./dist/index.js",

@@ -75,7 +75,10 @@ async function loadCoworkers(client: SessionClient): Promise<CoworkerStorage> {
   return normalized;
 }
 
-async function saveCoworkers(client: SessionClient, coworkers: CoworkerStorage) {
+async function saveCoworkers(
+  client: SessionClient,
+  coworkers: CoworkerStorage,
+) {
   const database = await getDb(client);
   const stmt = database.prepare(`
     INSERT OR REPLACE INTO coworkers (name, session_id, agent_type, created_at, parent_id)
@@ -83,7 +86,13 @@ async function saveCoworkers(client: SessionClient, coworkers: CoworkerStorage) 
   `);
 
   for (const [name, coworker] of Object.entries(coworkers)) {
-    stmt.run(name.toLowerCase(), coworker.sessionId, coworker.agentType, coworker.createdAt, coworker.parentId || null);
+    stmt.run(
+      name.toLowerCase(),
+      coworker.sessionId,
+      coworker.agentType,
+      coworker.createdAt,
+      coworker.parentId || null,
+    );
   }
 }
 
@@ -108,10 +117,16 @@ const coworkerPlugin: Plugin = async (ctx) => {
 
   // Create tools with access to client via closure
   const createCoworkerTool = tool({
-    description: "Create a new coworker session with a specific agent type and name",
+    description:
+      "Create a new coworker session with a specific agent type and name",
     args: {
       name: z.string().describe("User-friendly name for this coworker"),
-      agent_type: z.string().optional().describe("Agent type to use (e.g., code, researcher). Defaults to 'code'"),
+      agent_type: z
+        .string()
+        .optional()
+        .describe(
+          "Agent type to use (e.g., code, researcher). Defaults to 'code'",
+        ),
       prompt: z.string().describe("Initial prompt/task for the coworker"),
     },
     async execute(args, toolCtx) {
@@ -178,7 +193,8 @@ const coworkerPlugin: Plugin = async (ctx) => {
   });
 
   const tellCoworkerTool = tool({
-    description: "Queue a message to a coworker session to wake them up or give them work",
+    description:
+      "Queue a message to a coworker session to wake them up or give them work",
     args: {
       name: z.string().describe("Name of the coworker to message"),
       message: z.string().describe("Message or task to send to the coworker"),
@@ -204,7 +220,8 @@ const coworkerPlugin: Plugin = async (ctx) => {
   });
 
   const removeCoworkerTool = tool({
-    description: "Remove a coworker permanently. IMPORTANT: Please verify with the user that they want to do this before proceeding.",
+    description:
+      "Remove a coworker permanently. IMPORTANT: Please verify with the user that they want to do this before proceeding.",
     args: {
       name: z.string().describe("Name of the coworker to remove"),
     },
@@ -217,13 +234,17 @@ const coworkerPlugin: Plugin = async (ctx) => {
         return `Error: Coworker "${name}" not found. Use list_coworkers to see available coworkers.`;
       }
 
+      await client.session.delete({
+        path: { id: coworker.sessionId },
+      });
+
       const database = await getDb(client);
       database.run("DELETE FROM coworkers WHERE name = ?", [name]);
 
       activeSessions.delete(coworker.sessionId);
       sessionParents.delete(coworker.sessionId);
 
-      return `Removed coworker "${name}" (${coworker.agentType})`;
+      return `Removed coworker "${name}" (${coworker.agentType}) and deleted session ${coworker.sessionId}`;
     },
   });
 
@@ -267,7 +288,12 @@ const coworkerPlugin: Plugin = async (ctx) => {
     config: async (input: ServerConfig) => {
       input.experimental ??= {};
       input.experimental.primary_tools ??= [];
-      input.experimental.primary_tools.push("create_coworker", "list_coworkers", "tell_coworker", "remove_coworker");
+      input.experimental.primary_tools.push(
+        "create_coworker",
+        "list_coworkers",
+        "tell_coworker",
+        "remove_coworker",
+      );
     },
   };
 };
